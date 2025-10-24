@@ -1,0 +1,28 @@
+{
+  "Overgrow": {
+    "description": "Powers up Grass-type moves when the Pokemon's HP is low.",
+    "category": "moves",
+    "trigger": "hp_low"
+  },
+  "Blaze": {
+    "description": "Powers up Fire-type moves when the Pokemon's HP is low.",
+    "category": "moves",
+    "trigger": "hp_low"
+  },
+  "Torrent": {
+    "description": "Powers up Water-type moves when the Pokemon's HP is low.",
+    "category": "moves",
+    "trigger": "hp_low"
+  },
+  "Static": {
+    "description": "The Pokemon may cause paralysis when it's hit by a physical move.",
+    "category": "status",
+    "trigger": "physical_contact"
+  },
+  "Shadow Boost": {
+    "description": "Increases the power of Shadow moves by 50%.",
+    "category": "moves",
+    "game_era": "gamecube",
+    "is_gamecube_specific": true
+  }
+}

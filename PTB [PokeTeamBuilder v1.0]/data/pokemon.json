@@ -1,0 +1,111 @@
+{
+  "1": {
+    "name": "Bulbasaur",
+    "types": [
+      "grass",
+      "poison"
+    ],
+    "base_stats": {
+      "hp": 45,
+      "attack": 49,
+      "defense": 49,
+      "special_attack": 65,
+      "special_defense": 65,
+      "speed": 45
+    },
+    "abilities": [
+      "Overgrow",
+      "Chlorophyll"
+    ],
+    "moves": [
+      "Tackle",
+      "Growl",
+      "Vine Whip",
+      "Poison Powder",
+      "Sleep Powder",
+      "Razor Leaf",
+      "Solar Beam"
+    ]
+  },
+  "4": {
+    "name": "Charmander",
+    "types": [
+      "fire"
+    ],
+    "base_stats": {
+      "hp": 39,
+      "attack": 52,
+      "defense": 43,
+      "special_attack": 60,
+      "special_defense": 50,
+      "speed": 65
+    },
+    "abilities": [
+      "Blaze",
+      "Solar Power"
+    ],
+    "moves": [
+      "Scratch",
+      "Growl",
+      "Ember",
+      "Fire Fang",
+      "Flame Wheel",
+      "Fire Blast",
+      "Dragon Claw"
+    ]
+  },
+  "7": {
+    "name": "Squirtle",
+    "types": [
+      "water"
+    ],
+    "base_stats": {
+      "hp": 44,
+      "attack": 48,
+      "defense": 65,
+      "special_attack": 50,
+      "special_defense": 64,
+      "speed": 43
+    },
+    "abilities": [
+      "Torrent",
+      "Rain Dish"
+    ],
+    "moves": [
+      "Tackle",
+      "Tail Whip",
+      "Water Gun",
+      "Bubble",
+      "Surf",
+      "Ice Beam",
+      "Hydro Pump"
+    ]
+  },
+  "25": {
+    "name": "Pikachu",
+    "types": [
+      "electric"
+    ],
+    "base_stats": {
+      "hp": 35,
+      "attack": 55,
+      "defense": 40,
+      "special_attack": 50,
+      "special_defense": 50,
+      "speed": 90
+    },
+    "abilities": [
+      "Static",
+      "Lightning Rod"
+    ],
+    "moves": [
+      "Thunder Shock",
+      "Tail Whip",
+      "Thunder Wave",
+      "Quick Attack",
+      "Thunder",
+      "Thunderbolt",
+      "Agility"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+2025-10-25 05:22:44,785 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 1: attempted relative import beyond top-level package
+2025-10-25 05:22:44,786 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 4: attempted relative import beyond top-level package
+2025-10-25 05:22:44,786 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 7: attempted relative import beyond top-level package
+2025-10-25 05:22:44,786 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 25: attempted relative import beyond top-level package
+2025-10-25 05:22:44,787 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Tackle: attempted relative import beyond top-level package
+2025-10-25 05:22:44,787 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Thunder Shock: attempted relative import beyond top-level package
+2025-10-25 05:22:44,788 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Fire Blast: attempted relative import beyond top-level package
+2025-10-25 05:22:44,788 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Surf: attempted relative import beyond top-level package
+2025-10-25 05:22:45,265 - [34mptb.launcher[0m - [31mERROR[0m - main:35 - Import error: attempted relative import beyond top-level package
+2025-10-25 05:24:39,741 - [34mptb.launcher[0m - [31mERROR[0m - main:35 - Import error: attempted relative import beyond top-level package

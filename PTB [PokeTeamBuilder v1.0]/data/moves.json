@@ -1,0 +1,44 @@
+{
+  "Tackle": {
+    "type": "normal",
+    "category": "physical",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 35,
+    "description": "A physical attack in which the user charges and slams into the target."
+  },
+  "Thunder Shock": {
+    "type": "electric",
+    "category": "special",
+    "power": 40,
+    "accuracy": 100,
+    "pp": 30,
+    "description": "A jolt of electricity crashes down on the target."
+  },
+  "Shadow Rush": {
+    "type": "shadow",
+    "category": "physical",
+    "power": 55,
+    "accuracy": 100,
+    "pp": 20,
+    "description": "A shadow move that may cause the target to flinch.",
+    "is_shadow_move": true,
+    "game_era": "gamecube"
+  },
+  "Fire Blast": {
+    "type": "fire",
+    "category": "special",
+    "power": 110,
+    "accuracy": 85,
+    "pp": 5,
+    "description": "The target is attacked with an intense blast of all-consuming fire."
+  },
+  "Surf": {
+    "type": "water",
+    "category": "special",
+    "power": 90,
+    "accuracy": 100,
+    "pp": 15,
+    "description": "The user attacks everything around it by swamping its surroundings with a giant wave."
+  }
+}

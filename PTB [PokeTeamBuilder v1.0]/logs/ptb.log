@@ -1,0 +1,38 @@
+2025-10-25 05:22:44,382 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:144 - ============================================================
+2025-10-25 05:22:44,438 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:148 - ============================================================
+2025-10-25 05:22:44,443 - [34mptb.system[0m - [32mINFO[0m - log_system_info:160 - System Information:
+2025-10-25 05:22:44,592 - [34mptb.system[0m - [32mINFO[0m - log_system_info:161 -   Platform: Windows-11-10.0.26100-SP0
+2025-10-25 05:22:44,592 - [34mptb.system[0m - [32mINFO[0m - log_system_info:162 -   Python: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
+2025-10-25 05:22:44,592 - [34mptb.system[0m - [32mINFO[0m - log_system_info:163 -   Architecture: ('64bit', 'WindowsPE')
+2025-10-25 05:22:44,593 - [34mptb.system[0m - [32mINFO[0m - log_system_info:164 -   Processor: Intel64 Family 6 Model 165 Stepping 2, GenuineIntel
+2025-10-25 05:22:44,754 - [34mptb.system[0m - [32mINFO[0m - log_system_info:169 -   Total Memory: 15GB
+2025-10-25 05:22:44,754 - [34mptb.system[0m - [32mINFO[0m - log_system_info:170 -   Available Memory: 7GB
+2025-10-25 05:22:44,756 - [34mptb.launcher[0m - [32mINFO[0m - main:24 - Loading GUI components...
+2025-10-25 05:22:44,785 - [34mutils.performance[0m - [32mINFO[0m - optimize_startup:289 - Performing startup optimizations...
+2025-10-25 05:22:44,785 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 1: attempted relative import beyond top-level package
+2025-10-25 05:22:44,786 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 4: attempted relative import beyond top-level package
+2025-10-25 05:22:44,786 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 7: attempted relative import beyond top-level package
+2025-10-25 05:22:44,786 - [34mutils.performance[0m - [31mERROR[0m - cached_pokemon_lookup:237 - Failed to load Pokemon 25: attempted relative import beyond top-level package
+2025-10-25 05:22:44,787 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Tackle: attempted relative import beyond top-level package
+2025-10-25 05:22:44,787 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Thunder Shock: attempted relative import beyond top-level package
+2025-10-25 05:22:44,788 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Fire Blast: attempted relative import beyond top-level package
+2025-10-25 05:22:44,788 - [34mutils.performance[0m - [31mERROR[0m - cached_move_lookup:265 - Failed to load move Surf: attempted relative import beyond top-level package
+2025-10-25 05:22:44,789 - [34mutils.performance[0m - [32mINFO[0m - optimize_startup:302 - Startup optimization completed
+2025-10-25 05:22:45,265 - [34mptb.launcher[0m - [31mERROR[0m - main:35 - Import error: attempted relative import beyond top-level package
+2025-10-25 05:24:39,482 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:144 - ============================================================
+2025-10-25 05:24:39,482 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:145 - Pokemon Team Builder v1.0 - Logging Initialized
+2025-10-25 05:24:39,482 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:146 - Log directory: C:\Users\Colin\Desktop\Pokemon\PTB [PokeTeamBuilder v1.0]\logs
+2025-10-25 05:24:39,483 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:147 - Session started: 2025-10-25 05:24:39
+2025-10-25 05:24:39,483 - [34mptb.startup[0m - [32mINFO[0m - _setup_logging:148 - ============================================================
+2025-10-25 05:24:39,487 - [34mptb.system[0m - [32mINFO[0m - log_system_info:160 - System Information:
+2025-10-25 05:24:39,626 - [34mptb.system[0m - [32mINFO[0m - log_system_info:161 -   Platform: Windows-11-10.0.26100-SP0
+2025-10-25 05:24:39,626 - [34mptb.system[0m - [32mINFO[0m - log_system_info:162 -   Python: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
+2025-10-25 05:24:39,626 - [34mptb.system[0m - [32mINFO[0m - log_system_info:163 -   Architecture: ('64bit', 'WindowsPE')
+2025-10-25 05:24:39,627 - [34mptb.system[0m - [32mINFO[0m - log_system_info:164 -   Processor: Intel64 Family 6 Model 165 Stepping 2, GenuineIntel
+2025-10-25 05:24:39,648 - [34mptb.system[0m - [32mINFO[0m - log_system_info:169 -   Total Memory: 15GB
+2025-10-25 05:24:39,649 - [34mptb.system[0m - [32mINFO[0m - log_system_info:170 -   Available Memory: 7GB
+2025-10-25 05:24:39,649 - [34mptb.launcher[0m - [32mINFO[0m - main:23 - Starting Pokemon Team Builder v1.0...
+2025-10-25 05:24:39,649 - [34mptb.launcher[0m - [32mINFO[0m - main:24 - Loading GUI components...
+2025-10-25 05:24:39,679 - [34mutils.performance[0m - [32mINFO[0m - optimize_startup:289 - Performing startup optimizations...
+2025-10-25 05:24:39,707 - [34mutils.performance[0m - [32mINFO[0m - optimize_startup:302 - Startup optimization completed
+2025-10-25 05:24:39,741 - [34mptb.launcher[0m - [31mERROR[0m - main:35 - Import error: attempted relative import beyond top-level package
