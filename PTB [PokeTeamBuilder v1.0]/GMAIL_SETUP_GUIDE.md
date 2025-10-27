@@ -40,13 +40,13 @@ Gmail provides free, reliable SMTP service perfect for sending verification emai
 
 6. Google will display a 16-character password like:
    ```
-   abcd efgh ijkl mnop
+   xxxx xxxx xxxx xxxx
    ```
 
 7. **IMPORTANT**: Copy this password immediately!
    - You won't be able to see it again
    - Remove all spaces when using it
-   - Example: `abcdefghijklmnop` (no spaces)
+   - Example: `xxxxxxxxxxxxxxxx` (no spaces)
 
 ### Step 3: Configure Pokemon Team Builder
 
@@ -65,12 +65,12 @@ Gmail provides free, reliable SMTP service perfect for sending verification emai
    SMTP_SERVER=smtp.gmail.com
    SMTP_PORT=587
    SENDER_EMAIL=your-email@gmail.com
-   SENDER_PASSWORD=abcdefghijklmnop
+   SENDER_PASSWORD=your-16-char-app-password-here
    ```
 
 4. **Replace:**
    - `your-email@gmail.com` → Your actual Gmail address
-   - `abcdefghijklmnop` → Your 16-character app password (NO SPACES)
+   - `your-16-char-app-password-here` → Your 16-character app password (NO SPACES)
 
 5. **Save the file**
 
@@ -101,7 +101,7 @@ Gmail provides free, reliable SMTP service perfect for sending verification emai
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
 SENDER_EMAIL=pokemonbuilder2024@gmail.com
-SENDER_PASSWORD=abcdefghijklmnop
+SENDER_PASSWORD=your-16-char-app-password-here
 
 # Server Configuration
 BASE_URL=http://localhost:5000
