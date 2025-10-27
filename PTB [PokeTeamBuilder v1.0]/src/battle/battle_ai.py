@@ -8,8 +8,7 @@ import logging
 from typing import List, Dict, Any, Optional, Tuple, TYPE_CHECKING
 from enum import Enum
 
-from ..core.pokemon import Pokemon, PokemonNature
-from ..core.stats import EV, IV
+from ..core.pokemon import Pokemon, PokemonNature, PokemonStats, PokemonEV, PokemonIV
 from ..teambuilder.team import PokemonTeam, TeamEra, TeamFormat
 from ..battle.battle_engine import BattleEngine
 from ..battle.battle_state import BattleState, PokemonBattleState
@@ -40,20 +39,21 @@ class BattleAI:
         name: str,
         difficulty: AIDifficulty = AIDifficulty.INTERMEDIATE,
         personality: AIPersonality = AIPersonality.BALANCED,
-        team: Optional[PokemonTeam] = None
+        team: Optional[PokemonTeam] = None,
+        description: str = ""
     ):
         self.name = name
         self.difficulty = difficulty
         self.personality = personality
         self.team = team or self._generate_team()
         self.battle_history = []
+        self.description = description
         
         logger.info(f"Created AI opponent: {name} ({difficulty.value}, {personality.value})")
     
     def _generate_team(self) -> PokemonTeam:
         """Generate a team based on AI personality and difficulty."""
-        from ..core.stats import BaseStats, EV, IV
-        from ..core.pokemon import PokemonNature
+        # All imports handled at top of file
         
         # Create team
         team = PokemonTeam(
@@ -77,7 +77,7 @@ class BattleAI:
                 species_id=pokemon_info['id'],
                 level=self._get_level_for_difficulty(),
                 nature=self._select_nature(pokemon_info),
-                base_stats=BaseStats(**pokemon_info['base_stats']),
+                base_stats=PokemonStats(**pokemon_info['base_stats']),
                 evs=evs,
                 ivs=ivs,
                 moves=self._select_moves(pokemon_info),
@@ -145,19 +145,18 @@ class BattleAI:
         else:
             return all_pokemon
     
-    def _generate_stats_for_difficulty(self) -> Tuple['EV', 'IV']:
+    def _generate_stats_for_difficulty(self) -> Tuple[PokemonEV, PokemonIV]:
         """Generate EVs and IVs based on AI difficulty."""
-        from ..core.stats import EV, IV
         
         if self.difficulty == AIDifficulty.BEGINNER:
             # Random EVs, imperfect IVs
             ev_total = random.randint(200, 400)
-            evs = EV(
+            evs = PokemonEV(
                 attack=random.randint(0, min(252, ev_total//2)),
                 speed=random.randint(0, min(252, ev_total//2)),
                 hp=random.randint(0, min(252, ev_total//4))
             )
-            ivs = IV(
+            ivs = PokemonIV(
                 hp=random.randint(15, 31),
                 attack=random.randint(15, 31),
                 defense=random.randint(15, 31),
@@ -168,8 +167,8 @@ class BattleAI:
         
         elif self.difficulty == AIDifficulty.INTERMEDIATE:
             # Decent EVs, good IVs
-            evs = EV(attack=252, speed=252, hp=6)
-            ivs = IV(
+            evs = PokemonEV(attack=252, speed=252, hp=6)
+            ivs = PokemonIV(
                 hp=random.randint(25, 31),
                 attack=random.randint(25, 31),
                 defense=random.randint(20, 31),
@@ -180,8 +179,8 @@ class BattleAI:
         
         else:  # ADVANCED or EXPERT
             # Optimal EVs and IVs
-            evs = EV(attack=252, speed=252, hp=6)
-            ivs = IV(hp=31, attack=31, defense=31, special_attack=31, special_defense=31, speed=31)
+            evs = PokemonEV(attack=252, speed=252, hp=6)
+            ivs = PokemonIV(hp=31, attack=31, defense=31, special_attack=31, special_defense=31, speed=31)
         
         return evs, ivs
     

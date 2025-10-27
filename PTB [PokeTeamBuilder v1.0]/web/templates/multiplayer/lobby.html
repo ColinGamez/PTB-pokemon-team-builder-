@@ -1,0 +1,667 @@
+{% extends "base.html" %}
+
+{% block title %}Multiplayer Lobby{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+<style>
+.battle-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    background: #f9f9f9;
+    transition: all 0.3s ease;
+}
+.battle-card:hover {
+    background: #f0f0f0;
+    cursor: pointer;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.queue-status {
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    text-align: center;
+}
+.queue-status.waiting {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+.queue-status.ready {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+.multiplayer-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.feature-card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+.online-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #28a745;
+    display: inline-block;
+    margin-right: 5px;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+.battle-mode-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+.spectator-count {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="multiplayer-header">
+        <h1><i class="fas fa-globe-americas"></i> Online Multiplayer</h1>
+        <p class="mb-0">Battle trainers from around the world in real-time Pokemon battles!</p>
+        <div class="mt-2">
+            <span class="online-indicator"></span>
+            <span id="onlineCount">0</span> trainers online
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Quick Match Panel -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card feature-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Match</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Find an opponent instantly with automatic matchmaking based on your skill level.</p>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Battle Mode</label>
+                        <select class="form-select" id="quickMode">
+                            {% for mode in battle_modes %}
+                            <option value="{{ mode }}" {% if mode == 'singles' %}selected{% endif %}>
+                                {{ mode.title() }} Battle
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Format</label>
+                        <select class="form-select" id="quickFormat">
+                            {% for format in battle_formats %}
+                            <option value="{{ format }}" {% if format == 'casual' %}selected{% endif %}>
+                                {{ format.title() }}
+                                {% if format == 'ranked' %} (Affects Rating){% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div id="queueStatus" class="queue-status waiting" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-center">
+                            <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                            <span>Searching for opponent...</span>
+                        </div>
+                        <small class="d-block mt-2">Average wait time: <span id="avgWaitTime">30s</span></small>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 btn-lg" id="quickMatchBtn">
+                        <i class="fas fa-search"></i> Find Match
+                    </button>
+                    <button class="btn btn-outline-secondary w-100 mt-2" id="cancelQueueBtn" style="display: none;">
+                        <i class="fas fa-times"></i> Cancel Queue
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Private Battle Panel -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card feature-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-lock"></i> Private Battle</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Create or join private battles with friends using custom rules and settings.</p>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Mode</label>
+                            <select class="form-select form-select-sm" id="privateMode">
+                                {% for mode in battle_modes %}
+                                <option value="{{ mode }}">{{ mode.title() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Format</label>
+                            <select class="form-select form-select-sm" id="privateFormat">
+                                {% for format in battle_formats %}
+                                <option value="{{ format }}" {% if format == 'custom' %}selected{% endif %}>
+                                    {{ format.title() }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="enableTimer" checked>
+                                <label class="form-check-label" for="enableTimer">Timer</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="allowSpectators" checked>
+                                <label class="form-check-label" for="allowSpectators">Spectators</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Move Time Limit</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="moveTimeLimit" value="60" min="30" max="300">
+                            <span class="input-group-text">seconds</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-success w-100 mb-2" id="createBattleBtn">
+                        <i class="fas fa-plus"></i> Create Battle
+                    </button>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Join Battle</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="battleIdInput" 
+                                   placeholder="Enter Battle ID" maxlength="8">
+                            <button class="btn btn-info" id="joinBattleBtn">
+                                <i class="fas fa-sign-in-alt"></i> Join
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile & Stats Panel -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="card feature-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-user"></i> Your Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px; border-radius: 50%; font-size: 24px;">
+                            {{ user.username[0].upper() }}
+                        </div>
+                        <h6 class="mt-2 mb-0">{{ user.username }}</h6>
+                        <small class="text-muted">Trainer Level {{ user.get('level', 1) }}</small>
+                    </div>
+                    
+                    <div class="row text-center mb-3">
+                        <div class="col-4">
+                            <div class="bg-light p-2 rounded">
+                                <h6 class="mb-0">{{ user.get('rating', 1200) }}</h6>
+                                <small class="text-muted">Rating</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light p-2 rounded">
+                                <h6 class="mb-0">{{ user.get('wins', 0) }}</h6>
+                                <small class="text-muted">Wins</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light p-2 rounded">
+                                <h6 class="mb-0">{{ user.get('battles', 0) }}</h6>
+                                <small class="text-muted">Battles</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <small>Win Rate</small>
+                            <small>{{ "%.1f"|format((user.get('wins', 0) / user.get('battles', 1) * 100) if user.get('battles', 0) > 0 else 0) }}%</small>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            {% set win_rate = (user.get('wins', 0) / user.get('battles', 1) * 100) if user.get('battles', 0) > 0 else 0 %}
+                            <div class="progress-bar bg-success" style="width: {{ win_rate }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-chart-line"></i> View Stats
+                        </button>
+                        <button class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-trophy"></i> Leaderboard
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Active Battles Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card feature-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-gamepad"></i> Active Battles</h5>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm me-2" id="refreshBattles">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <div class="form-check form-switch d-inline-block">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                            <label class="form-check-label" for="autoRefresh">Auto-refresh</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="battlesList">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading active battles...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Battle Created Modal -->
+<div class="modal fade" id="battleCreatedModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Battle Created!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="fas fa-check-circle text-success" style="font-size: 48px;"></i>
+                    <h6 class="mt-3">Your battle room is ready!</h6>
+                    <p class="text-muted">Share this Battle ID with your friend:</p>
+                    <div class="input-group">
+                        <input type="text" class="form-control text-center" id="createdBattleId" readonly>
+                        <button class="btn btn-outline-secondary" onclick="copyBattleId()">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="enterBattleBtn">
+                    <i class="fas fa-arrow-right"></i> Enter Battle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize Socket.IO
+const socket = io();
+let autoRefreshInterval;
+
+// DOM Elements
+const quickMatchBtn = document.getElementById('quickMatchBtn');
+const cancelQueueBtn = document.getElementById('cancelQueueBtn');
+const createBattleBtn = document.getElementById('createBattleBtn');
+const joinBattleBtn = document.getElementById('joinBattleBtn');
+const refreshBattlesBtn = document.getElementById('refreshBattles');
+const queueStatus = document.getElementById('queueStatus');
+const battlesList = document.getElementById('battlesList');
+const autoRefreshCheckbox = document.getElementById('autoRefresh');
+
+// Socket event handlers
+socket.on('connect', function() {
+    console.log('Connected to multiplayer server');
+    updateOnlineCount();
+    loadBattles();
+    startAutoRefresh();
+});
+
+socket.on('disconnect', function() {
+    console.log('Disconnected from server');
+    updateOnlineCount(0);
+});
+
+socket.on('battle_message', function(data) {
+    handleBattleMessage(data);
+});
+
+socket.on('online_count', function(data) {
+    updateOnlineCount(data.count);
+});
+
+// Quick Match functionality
+quickMatchBtn.addEventListener('click', function() {
+    const mode = document.getElementById('quickMode').value;
+    const format = document.getElementById('quickFormat').value;
+    
+    this.disabled = true;
+    
+    fetch('/api/multiplayer/queue', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({mode: mode, format: format})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showQueueStatus();
+        } else {
+            showError('Failed to join queue: ' + data.error);
+            this.disabled = false;
+        }
+    })
+    .catch(error => {
+        showError('Network error. Please try again.');
+        this.disabled = false;
+    });
+});
+
+cancelQueueBtn.addEventListener('click', function() {
+    fetch('/api/multiplayer/cancel_queue', {method: 'POST'})
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            hideQueueStatus();
+        }
+    });
+});
+
+// Private Battle functionality
+createBattleBtn.addEventListener('click', function() {
+    const mode = document.getElementById('privateMode').value;
+    const format = document.getElementById('privateFormat').value;
+    const settings = {
+        timer_enabled: document.getElementById('enableTimer').checked,
+        move_time_limit: parseInt(document.getElementById('moveTimeLimit').value),
+        allow_spectators: document.getElementById('allowSpectators').checked
+    };
+    
+    this.disabled = true;
+    
+    fetch('/api/multiplayer/create_battle', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({mode: mode, format: format, settings: settings})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.battle_id) {
+            showBattleCreatedModal(data.battle_id);
+        } else {
+            showError('Failed to create battle: ' + data.error);
+        }
+        this.disabled = false;
+    })
+    .catch(error => {
+        showError('Network error. Please try again.');
+        this.disabled = false;
+    });
+});
+
+joinBattleBtn.addEventListener('click', function() {
+    const battleId = document.getElementById('battleIdInput').value.trim().toUpperCase();
+    if (!battleId) {
+        showError('Please enter a Battle ID');
+        return;
+    }
+    
+    this.disabled = true;
+    
+    fetch('/api/multiplayer/join_battle', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({battle_id: battleId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = `/multiplayer/battle/${battleId}`;
+        } else {
+            showError('Failed to join battle: ' + data.error);
+        }
+        this.disabled = false;
+    })
+    .catch(error => {
+        showError('Network error. Please try again.');
+        this.disabled = false;
+    });
+});
+
+// Battle list functionality
+refreshBattlesBtn.addEventListener('click', loadBattles);
+
+autoRefreshCheckbox.addEventListener('change', function() {
+    if (this.checked) {
+        startAutoRefresh();
+    } else {
+        stopAutoRefresh();
+    }
+});
+
+// Utility functions
+function showQueueStatus() {
+    queueStatus.style.display = 'block';
+    quickMatchBtn.style.display = 'none';
+    cancelQueueBtn.style.display = 'block';
+}
+
+function hideQueueStatus() {
+    queueStatus.style.display = 'none';
+    quickMatchBtn.style.display = 'block';
+    quickMatchBtn.disabled = false;
+    cancelQueueBtn.style.display = 'none';
+}
+
+function showBattleCreatedModal(battleId) {
+    document.getElementById('createdBattleId').value = battleId;
+    document.getElementById('enterBattleBtn').onclick = () => {
+        window.location.href = `/multiplayer/battle/${battleId}`;
+    };
+    new bootstrap.Modal(document.getElementById('battleCreatedModal')).show();
+}
+
+function copyBattleId() {
+    const input = document.getElementById('createdBattleId');
+    input.select();
+    document.execCommand('copy');
+    
+    // Show feedback
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check"></i>';
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+    }, 2000);
+}
+
+function loadBattles() {
+    refreshBattlesBtn.disabled = true;
+    
+    fetch('/api/multiplayer/battles')
+    .then(response => response.json())
+    .then(battles => {
+        displayBattles(battles);
+        refreshBattlesBtn.disabled = false;
+    })
+    .catch(error => {
+        console.error('Failed to load battles:', error);
+        battlesList.innerHTML = '<div class="text-center text-danger">Failed to load battles</div>';
+        refreshBattlesBtn.disabled = false;
+    });
+}
+
+function displayBattles(battles) {
+    if (battles.length === 0) {
+        battlesList.innerHTML = `
+            <div class="text-center text-muted py-4">
+                <i class="fas fa-ghost" style="font-size: 48px; opacity: 0.3;"></i>
+                <p class="mt-2">No active battles right now</p>
+                <small>Be the first to start a battle!</small>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '<div class="row">';
+    battles.forEach(battle => {
+        const createdTime = new Date(battle.created_at).toLocaleTimeString();
+        const phaseDisplay = battle.phase.replace('_', ' ').split(' ').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        
+        html += `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="battle-card h-100" data-battle-id="${battle.battle_id}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="mb-1">${battle.mode.toUpperCase()}</h6>
+                            <span class="badge battle-mode-badge bg-secondary">${battle.format.toUpperCase()}</span>
+                        </div>
+                        <small class="text-muted">${createdTime}</small>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary">${battle.players}/2 Players</span>
+                            <span class="spectator-count">
+                                <i class="fas fa-eye"></i> ${battle.spectators} watching
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">Status: <strong>${phaseDisplay}</strong></small>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-outline-primary btn-sm" onclick="spectate('${battle.battle_id}')">
+                            <i class="fas fa-eye"></i> Spectate Battle
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    battlesList.innerHTML = html;
+}
+
+function spectate(battleId) {
+    window.location.href = `/multiplayer/battle/${battleId}`;
+}
+
+function handleBattleMessage(data) {
+    if (data.type === 'battle_started' && data.data.battle_id) {
+        // Redirect to battle if we're in one of the battles
+        window.location.href = `/multiplayer/battle/${data.data.battle_id}`;
+    } else if (data.type === 'matchmaking_found') {
+        hideQueueStatus();
+        showSuccess('Match found! Redirecting to battle...');
+        setTimeout(() => {
+            window.location.href = `/multiplayer/battle/${data.data.battle_id}`;
+        }, 2000);
+    }
+}
+
+function updateOnlineCount(count = null) {
+    const element = document.getElementById('onlineCount');
+    if (count !== null) {
+        element.textContent = count;
+    } else {
+        // Request count from server
+        socket.emit('get_online_count');
+    }
+}
+
+function startAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+    autoRefreshInterval = setInterval(loadBattles, 10000); // Refresh every 10 seconds
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+function showError(message) {
+    // You can implement a toast notification system here
+    alert('Error: ' + message);
+}
+
+function showSuccess(message) {
+    // You can implement a toast notification system here
+    alert('Success: ' + message);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadBattles();
+    
+    // Format battle ID input
+    document.getElementById('battleIdInput').addEventListener('input', function() {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+    
+    // Enable tooltips if Bootstrap is available
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
+    socket.disconnect();
+});
+</script>
+{% endblock %}

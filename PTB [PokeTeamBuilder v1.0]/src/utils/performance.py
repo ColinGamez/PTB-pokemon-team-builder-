@@ -147,7 +147,7 @@ def performance_monitor(func: Callable) -> Callable:
     
     return wrapper
 
-def memory_efficient_batch_process(items, batch_size: int = 100, process_func: Callable = None):
+def memory_efficient_batch_process(items, batch_size: int = 100, process_func: Optional[Callable] = None):
     """Process items in batches to reduce memory usage."""
     if not process_func:
         return items
@@ -174,7 +174,7 @@ class MemoryManager:
     """Memory management utilities."""
     
     @staticmethod
-    def get_memory_usage() -> Dict[str, int]:
+    def get_memory_usage() -> Dict[str, Any]:
         """Get current memory usage statistics."""
         import psutil
         import os

@@ -492,7 +492,7 @@ class PokemonTeam:
         
         return type_counts
     
-    def _analyze_stats(self, pokemon_list: List[Pokemon]) -> Dict[str, float]:
+    def _analyze_stats(self, pokemon_list: List[Pokemon]) -> Dict[str, Any]:
         """Analyze total stats of the team."""
         if not pokemon_list:
             return {}

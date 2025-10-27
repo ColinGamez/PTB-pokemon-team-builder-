@@ -18,6 +18,9 @@ A comprehensive Pokemon team building and trading platform supporting games from
 - Multiple trading method support
 - Comprehensive Pokemon database
 - Battle simulator integration
+- Social Community Hub with user profiles and team sharing
+- Tournament management system
+- Admin Panel for user and content management
 
 ### Trading Methods
 - Local trading
@@ -30,7 +33,39 @@ A comprehensive Pokemon team building and trading platform supporting games from
 
 1. Ensure Python 3.8+ is installed
 2. Install dependencies: `pip install -r requirements.txt`
-3. Run the main application: `python main.py`
+3. Initialize databases: `python initialize_databases.py`
+4. (Optional) Initialize social database: `python initialize_social_database.py`
+5. Run the GUI application: `python run_gui.py`
+
+### Backend Server (for Email Verification)
+
+The backend server handles user registration and email verification:
+
+1. **Quick Start (Demo Mode)**
+   ```bash
+   python start_backend.py
+   ```
+   - Emails saved to `logs/email_verifications.txt`
+   - No SMTP configuration needed
+
+2. **Production Setup (Real Emails)**
+   ```bash
+   # Copy configuration template
+   copy .env.example .env
+   
+   # Edit .env with your SMTP credentials
+   notepad .env
+   
+   # Start server
+   python start_backend.py
+   ```
+
+3. **Windows Easy Start**
+   ```bash
+   start_backend.bat
+   ```
+
+See [BACKEND_README.md](BACKEND_README.md) for detailed backend documentation.
 
 ## Project Structure
 
@@ -50,3 +85,25 @@ PTB/
 ## Development Status
 
 Currently building GameCube era foundation with Shadow Pokemon mechanics.
+
+## Admin Panel
+
+The Admin Panel provides comprehensive tools for managing the platform:
+
+**Access:** Click "🔒 Admin Panel" button in the main application
+
+**Admin PIN:** `050270` (⚠️ Keep secure!)
+
+**Features:**
+- 📊 Dashboard with system statistics
+- 👥 User management (search, verify, delete, ban)
+- 📝 Content moderation
+- 📈 Detailed analytics
+- 💾 Database backup and maintenance
+- ⚙️ System settings and configuration
+
+**Documentation:**
+- [ADMIN_PANEL_GUIDE.md](ADMIN_PANEL_GUIDE.md) - Complete admin documentation
+- [ADMIN_QUICK_REFERENCE.md](ADMIN_QUICK_REFERENCE.md) - Quick reference guide
+
+**Security:** See ADMIN_PANEL_GUIDE.md for PIN security and production deployment.

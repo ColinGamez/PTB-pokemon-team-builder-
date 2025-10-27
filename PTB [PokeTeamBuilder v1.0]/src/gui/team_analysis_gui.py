@@ -258,7 +258,7 @@ class TeamAnalysisFrame(tk.Frame):
             self.analysis_results = analyzer.analyze_team()
             
             # Update all displays
-            self._update_overview()
+            self._update_overview_tab()
             self._update_type_coverage()
             self._update_weaknesses()
             self._update_statistics()
@@ -292,7 +292,7 @@ class TeamAnalysisFrame(tk.Frame):
         }
         
         # Update displays
-        self._update_overview()
+        self._update_overview_tab()
         self._update_type_coverage()
         self._update_weaknesses()
         self._update_statistics()
@@ -336,9 +336,9 @@ class TeamAnalysisFrame(tk.Frame):
         
         return recommendations
     
-    def _update_overview(self):
+    def _update_overview_tab(self):
         """Update the overview tab."""
-        if not self.analysis_results:
+        if not self.analysis_results or not self.current_team:
             return
         
         # Update summary text
@@ -486,6 +486,10 @@ Analysis Summary:
             )
             
             if filename:
+                if not self.current_team or not self.analysis_results:
+                    messagebox.showerror("Export Error", "No team or analysis data to export")
+                    return
+                    
                 with open(filename, 'w') as f:
                     f.write(f"POKEMON TEAM ANALYSIS REPORT\n")
                     f.write(f"{'='*40}\n\n")

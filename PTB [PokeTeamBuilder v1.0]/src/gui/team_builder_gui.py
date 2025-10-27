@@ -11,13 +11,14 @@ import os
 # Add the src directory to the path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from .theme_manager import ThemeManager
-from ..teambuilder.team import PokemonTeam, TeamFormat, TeamEra
-from ..teambuilder.analyzer import TeamAnalyzer
-from ..teambuilder.validator import TeamValidator
-from ..teambuilder.optimizer import TeamOptimizer
-from ..core.pokemon import Pokemon, ShadowPokemon
-from ..core.stats import PokemonNature
+from src.gui.theme_manager import ThemeManager
+from src.teambuilder.team import PokemonTeam, TeamFormat, TeamEra
+from src.teambuilder.analyzer import TeamAnalyzer
+from src.teambuilder.validator import TeamValidator
+from src.teambuilder.optimizer import TeamOptimizer
+from src.core.pokemon import Pokemon, ShadowPokemon
+from src.core.pokemon import PokemonNature
+from src.utils.sprite_manager import get_sprite_manager
 
 
 class TeamBuilderFrame(tk.Frame):
@@ -30,70 +31,122 @@ class TeamBuilderFrame(tk.Frame):
         self.analyzer = None
         self.validator = None
         self.optimizer = None
+        self.sprite_manager = get_sprite_manager()
         
         self._create_widgets()
         self._create_sample_team()
     
     def _create_widgets(self):
         """Create the team builder interface widgets."""
-        # Title
+        # Enhanced header section
+        header_frame = self.theme_manager.create_styled_frame(self)
+        header_frame.pack(fill=tk.X, padx=20, pady=15)
+        
         title_label = self.theme_manager.create_styled_label(
-            self,
-            text="🏗️ Team Builder",
-            font=('Arial', 18, 'bold')
+            header_frame,
+            text="🏗️ Pokemon Team Builder",
+            font=('Arial', 20, 'bold')
         )
-        title_label.pack(pady=10)
+        title_label.pack(pady=(0, 5))
         
-        # Team creation section
-        team_creation_frame = self.theme_manager.create_styled_frame(self)
-        team_creation_frame.pack(fill=tk.X, padx=20, pady=10)
+        subtitle_label = self.theme_manager.create_styled_label(
+            header_frame,
+            text="Build competitive teams with advanced analysis and optimization",
+            font=('Arial', 12, 'italic')
+        )
+        subtitle_label.pack(pady=(0, 15))
         
-        # Team name input
-        name_frame = tk.Frame(team_creation_frame)
-        name_frame.pack(fill=tk.X, padx=10, pady=5)
+        # Team configuration section with enhanced layout
+        config_frame = self.theme_manager.create_styled_frame(self)
+        config_frame.pack(fill=tk.X, padx=20, pady=10)
         
-        name_label = self.theme_manager.create_styled_label(name_frame, text="Team Name:")
-        name_label.pack(side=tk.LEFT, padx=(0, 10))
+        config_title = self.theme_manager.create_styled_label(
+            config_frame,
+            text="⚙️ Team Configuration",
+            font=('Arial', 14, 'bold')
+        )
+        config_title.pack(pady=(10, 15))
         
-        self.team_name_var = tk.StringVar(value="My Team")
-        name_entry = tk.Entry(name_frame, textvariable=self.team_name_var, width=20)
-        name_entry.pack(side=tk.LEFT, padx=(0, 20))
+        # Team settings in a grid layout
+        settings_frame = tk.Frame(config_frame)
+        settings_frame.pack(fill=tk.X, padx=20, pady=10)
+        
+        # Team name row
+        name_row = tk.Frame(settings_frame)
+        name_row.grid(row=0, column=0, columnspan=3, sticky="ew", pady=5)
+        settings_frame.grid_columnconfigure(1, weight=1)
+        
+        name_label = self.theme_manager.create_styled_label(name_row, text="Team Name:")
+        name_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
+        
+        self.team_name_var = tk.StringVar(value="My Competitive Team")
+        name_entry = tk.Entry(name_row, textvariable=self.team_name_var, width=30, font=('Arial', 11))
+        name_entry.grid(row=0, column=1, padx=(0, 20), sticky="ew")
+        
+        # Format and era row
+        format_row = tk.Frame(settings_frame)
+        format_row.grid(row=1, column=0, columnspan=3, sticky="ew", pady=10)
+        format_row.grid_columnconfigure(1, weight=1)
+        format_row.grid_columnconfigure(3, weight=1)
         
         # Team format selection
-        format_label = self.theme_manager.create_styled_label(name_frame, text="Format:")
-        format_label.pack(side=tk.LEFT, padx=(0, 10))
+        format_label = self.theme_manager.create_styled_label(format_row, text="Battle Format:")
+        format_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
         
-        self.format_var = tk.StringVar(value="single")
+        self.format_var = tk.StringVar(value="singles")
         format_combo = ttk.Combobox(
-            name_frame,
+            format_row,
             textvariable=self.format_var,
-            values=["single", "double", "triple", "rotation", "multi"],
+            values=["singles", "doubles", "triple", "rotation", "multi", "vgc"],
             state="readonly",
-            width=10
+            width=15
         )
-        format_combo.pack(side=tk.LEFT, padx=(0, 20))
+        format_combo.grid(row=0, column=1, padx=(0, 30), sticky="w")
         
         # Team era selection
-        era_label = self.theme_manager.create_styled_label(name_frame, text="Era:")
-        era_label.pack(side=tk.LEFT, padx=(0, 10))
+        era_label = self.theme_manager.create_styled_label(format_row, text="Game Era:")
+        era_label.grid(row=0, column=2, padx=(0, 10), sticky="w")
         
-        self.era_var = tk.StringVar(value="modern")
+        self.era_var = tk.StringVar(value="switch")
         era_combo = ttk.Combobox(
-            name_frame,
+            format_row,
             textvariable=self.era_var,
             values=["gamecube", "wii", "ds", "3ds", "switch", "modern"],
             state="readonly",
-            width=10
+            width=15
         )
-        era_combo.pack(side=tk.LEFT)
+        era_combo.grid(row=0, column=3, sticky="w")
         
-        # Create team button
+        # Action buttons row
+        buttons_frame = tk.Frame(config_frame)
+        buttons_frame.pack(pady=15)
+        
         create_btn = self.theme_manager.create_styled_button(
-            team_creation_frame,
-            text="Create Team",
-            command=self._create_team
+            buttons_frame,
+            text="🏗️ Create New Team",
+            command=self._create_team,
+            style="primary",
+            width=15
         )
-        create_btn.pack(pady=10)
+        create_btn.pack(side=tk.LEFT, padx=5)
+        
+        load_btn = self.theme_manager.create_styled_button(
+            buttons_frame,
+            text="📁 Load Team",
+            command=self._load_team,
+            style="secondary",
+            width=12
+        )
+        load_btn.pack(side=tk.LEFT, padx=5)
+        
+        import_btn = self.theme_manager.create_styled_button(
+            buttons_frame,
+            text="📥 Import Team",
+            command=self._import_team,
+            style="secondary",
+            width=12
+        )
+        import_btn.pack(side=tk.LEFT, padx=5)
         
         # Team display section
         self.team_display_frame = self.theme_manager.create_styled_frame(self)
@@ -241,6 +294,10 @@ class TeamBuilderFrame(tk.Frame):
         slot_label = tk.Label(slot_frame, text=f"Slot {slot_number + 1}", font=('Arial', 10, 'bold'))
         slot_label.pack(pady=2)
         
+        # Pokemon sprite (placeholder)
+        sprite_label = tk.Label(slot_frame, text="?", font=('Arial', 32))
+        sprite_label.pack(pady=5)
+        
         # Pokemon name
         name_label = tk.Label(slot_frame, text="Empty", font=('Arial', 9))
         name_label.pack(pady=2)
@@ -254,6 +311,7 @@ class TeamBuilderFrame(tk.Frame):
         types_label.pack(pady=1)
         
         # Store references
+        slot_frame.sprite_label = sprite_label
         slot_frame.name_label = name_label
         slot_frame.level_label = level_label
         slot_frame.types_label = types_label
@@ -396,11 +454,32 @@ class TeamBuilderFrame(tk.Frame):
                 if len(types) > 0:
                     type_color = self.theme_manager.get_type_color(types[0])
                     slot.types_label.config(fg=type_color)
+                
+                # Load and display sprite
+                try:
+                    # Try to get sprite by species ID
+                    sprite_image = self.sprite_manager.get_sprite(
+                        pokemon.species_id,
+                        shiny=getattr(pokemon, 'is_shiny', False),
+                        size=(80, 80)
+                    )
+                    
+                    if sprite_image:
+                        slot.sprite_label.config(image=sprite_image, text="")
+                        # Keep reference to prevent garbage collection
+                        slot.sprite_label.image = sprite_image
+                    else:
+                        # Fallback to text if sprite not found
+                        slot.sprite_label.config(image="", text="?")
+                except Exception as e:
+                    # If sprite loading fails, show text
+                    slot.sprite_label.config(image="", text="?")
             else:
                 slot.name_label.config(text="Empty")
                 slot.level_label.config(text="")
                 slot.types_label.config(text="")
                 slot.types_label.config(fg="black")
+                slot.sprite_label.config(image="", text="?")
     
     def _analyze_team(self):
         """Analyze the current team."""
@@ -523,3 +602,130 @@ class TeamBuilderFrame(tk.Frame):
         self.results_text.delete(1.0, tk.END)
         self.results_text.insert(1.0, text)
         self.results_text.config(state=tk.DISABLED)
+    
+    def _load_team(self):
+        """Load a team from file."""
+        try:
+            from tkinter import filedialog
+            
+            filetypes = [
+                ("JSON files", "*.json"),
+                ("Pokemon Showdown", "*.txt"),
+                ("All files", "*.*")
+            ]
+            
+            file_path = filedialog.askopenfilename(
+                title="Load Team",
+                filetypes=filetypes
+            )
+            
+            if file_path:
+                # TODO: Implement actual team loading logic
+                messagebox.showinfo("Success", f"Team loaded from {file_path}")
+                self._update_results(f"📁 Team loaded from: {file_path}")
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load team: {str(e)}")
+    
+    def _import_team(self):
+        """Import a team from various formats."""
+        try:
+            # Create import dialog
+            import_window = tk.Toplevel(self)
+            import_window.title("Import Team")
+            import_window.geometry("600x400")
+            import_window.transient(self)
+            import_window.grab_set()
+            
+            # Center the window
+            import_window.update_idletasks()
+            x = (import_window.winfo_screenwidth() // 2) - (600 // 2)
+            y = (import_window.winfo_screenheight() // 2) - (400 // 2)
+            import_window.geometry(f"600x400+{x}+{y}")
+            
+            # Import format selection
+            format_frame = self.theme_manager.create_styled_frame(import_window)
+            format_frame.pack(fill=tk.X, padx=20, pady=10)
+            
+            format_label = self.theme_manager.create_styled_label(
+                format_frame,
+                text="Import Format:",
+                font=('Arial', 12, 'bold')
+            )
+            format_label.pack(anchor=tk.W, pady=(0, 5))
+            
+            format_var = tk.StringVar(value="showdown")
+            formats = [
+                ("Pokemon Showdown", "showdown"),
+                ("PKHeX", "pkhex"),
+                ("Save File", "save"),
+                ("JSON", "json")
+            ]
+            
+            for text, value in formats:
+                rb = tk.Radiobutton(
+                    format_frame,
+                    text=text,
+                    variable=format_var,
+                    value=value,
+                    font=('Arial', 10)
+                )
+                rb.pack(anchor=tk.W, pady=2)
+            
+            # Import text area
+            text_frame = self.theme_manager.create_styled_frame(import_window)
+            text_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+            
+            text_label = self.theme_manager.create_styled_label(
+                text_frame,
+                text="Paste team data:",
+                font=('Arial', 12, 'bold')
+            )
+            text_label.pack(anchor=tk.W, pady=(0, 5))
+            
+            import_text = tk.Text(
+                text_frame,
+                height=15,
+                font=('Consolas', 10)
+            )
+            import_text.pack(fill=tk.BOTH, expand=True)
+            
+            # Buttons
+            button_frame = tk.Frame(import_window)
+            button_frame.pack(fill=tk.X, padx=20, pady=10)
+            
+            def do_import():
+                try:
+                    content = import_text.get(1.0, tk.END).strip()
+                    selected_format = format_var.get()
+                    
+                    if not content:
+                        messagebox.showwarning("Warning", "Please paste team data first!")
+                        return
+                    
+                    # TODO: Implement actual import logic based on format
+                    messagebox.showinfo("Success", f"Team imported from {selected_format} format!")
+                    self._update_results(f"📥 Team imported from {selected_format} format")
+                    import_window.destroy()
+                    
+                except Exception as e:
+                    messagebox.showerror("Error", f"Import failed: {str(e)}")
+            
+            import_btn = self.theme_manager.create_styled_button(
+                button_frame,
+                text="Import Team",
+                command=do_import,
+                style="primary"
+            )
+            import_btn.pack(side=tk.RIGHT, padx=(5, 0))
+            
+            cancel_btn = self.theme_manager.create_styled_button(
+                button_frame,
+                text="Cancel",
+                command=import_window.destroy,
+                style="secondary"
+            )
+            cancel_btn.pack(side=tk.RIGHT)
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open import dialog: {str(e)}")

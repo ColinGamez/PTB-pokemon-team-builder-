@@ -1,0 +1,102 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test files
+test_*.py
+*_test.py
+tests/
+
+# Logs
+logs/
+*.log
+
+# Database files (keep structure, not data)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment variables
+.env
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Build files
+*.pyc
+*.pyo
+
+# Coverage
+.coverage
+htmlcov/
+
+# MyPy
+.mypy_cache/
+
+# Pytest
+.pytest_cache/
+
+# User data (keep example files only)
+config/user_*.json
+data/user_*.json
+
+# Secrets
+*.key
+*.pem
+secrets/
+
+# Node modules (for mobile app)
+mobile/node_modules/
+mobile/.expo/
+mobile/.expo-shared/
+
+# Mobile build files
+mobile/android/build/
+mobile/ios/build/
+mobile/android/.gradle/
+mobile/ios/Pods/
+
+# Sprite files (too large for git - user should download separately)
+../Sprites/

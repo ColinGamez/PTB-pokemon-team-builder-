@@ -7,29 +7,30 @@ Run this script to start the Pokemon Team Builder application.
 import sys
 import os
 
-# Add the src directory to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# Add the project root to the path
+project_root = os.path.dirname(__file__)
+sys.path.insert(0, project_root)
 
 # Initialize logging first
-from utils.logging_config import initialize_application_logging
-logger_manager = initialize_application_logging("INFO")
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 def main():
     """Main entry point for the GUI application."""
-    import logging
     logger = logging.getLogger('ptb.launcher')
     
     try:
         logger.info("Starting Pokemon Team Builder v1.0...")
         logger.info("Loading GUI components...")
         
-        # Initialize performance optimizations
-        from utils.performance import optimize_startup
-        optimize_startup()
-        
         # Import and run the main window
-        from gui.main_window import main as run_gui
-        run_gui()
+        from src.gui.main_window import MainWindow
+        
+        app = MainWindow()
+        app.run()
         
     except ImportError as e:
         logger.error(f"Import error: {e}")

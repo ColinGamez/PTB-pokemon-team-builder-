@@ -3,7 +3,7 @@ Battle engine for Pokemon battles.
 Handles damage calculations, status effects, and battle mechanics.
 """
 
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 import random
 import math
 import logging
@@ -36,7 +36,7 @@ class BattleEngine:
         move_name: str,
         battle_state: BattleState,
         is_critical: bool = False
-    ) -> Tuple[int, Dict[str, any]]:
+    ) -> Tuple[int, Dict[str, Any]]:
         """
         Calculate damage for a move.
         
@@ -99,10 +99,10 @@ class BattleEngine:
         self,
         attacker: PokemonBattleState,
         defender: PokemonBattleState,
-        move_info: Dict[str, any],
+        move_info: Dict[str, Any],
         battle_state: BattleState,
         is_critical: bool
-    ) -> Dict[str, any]:
+    ) -> Dict[str, Any]:
         """Calculate all damage modifiers."""
         modifiers = {
             'stab': 1.0,
@@ -129,12 +129,12 @@ class BattleEngine:
             modifiers['critical'] = 1.5
         
         # Weather effects
-        weather_mult = self.weather_multipliers.get(battle_state.weather, {})
+        weather_mult = self.weather_multipliers.get(battle_state.weather.value if battle_state.weather else "", {})
         if move_info['type'] in weather_mult:
             modifiers['weather'] = weather_mult[move_info['type']]
         
         # Terrain effects
-        terrain_mult = self.terrain_multipliers.get(battle_state.terrain, {})
+        terrain_mult = self.terrain_multipliers.get(battle_state.terrain.value if battle_state.terrain else "", {})
         if move_info['type'] in terrain_mult:
             modifiers['terrain'] = terrain_mult[move_info['type']]
         
@@ -181,7 +181,7 @@ class BattleEngine:
         return effectiveness
     
     @lru_cache(maxsize=500)
-    def _get_move_info(self, move_name: str) -> Dict[str, any]:
+    def _get_move_info(self, move_name: str) -> Dict[str, Any]:
         """Get move information from database with caching."""
         import json
         
@@ -274,7 +274,7 @@ class BattleEngine:
         
         return random.random() < chance
     
-    def check_move_hit(self, move_name: str, accuracy_modifiers: Dict[str, float] = None) -> bool:
+    def check_move_hit(self, move_name: str, accuracy_modifiers: Optional[Dict[str, float]] = None) -> bool:
         """Check if a move hits the target."""
         if accuracy_modifiers is None:
             accuracy_modifiers = {}

@@ -12,15 +12,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 def main():
     """Initialize all databases."""
     try:
-        from config.game_config import DatabaseConfig
+        from src.config.game_config import DatabaseConfig, GameConfig
         
         print("🎮 Initializing Pokemon Team Builder databases...")
         DatabaseConfig.initialize_databases()
         print("✅ Databases initialized successfully!")
         
         # Verify database files were created
-        from config.game_config import GameConfig
-        
         if GameConfig.POKEMON_DATABASE.exists():
             print(f"✅ Pokemon database created: {GameConfig.POKEMON_DATABASE}")
         

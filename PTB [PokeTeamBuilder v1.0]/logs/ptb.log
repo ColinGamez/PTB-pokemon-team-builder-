@@ -36,3 +36,19 @@
 2025-10-25 05:24:39,679 - [34mutils.performance[0m - [32mINFO[0m - optimize_startup:289 - Performing startup optimizations...
 2025-10-25 05:24:39,707 - [34mutils.performance[0m - [32mINFO[0m - optimize_startup:302 - Startup optimization completed
 2025-10-25 05:24:39,741 - [34mptb.launcher[0m - [31mERROR[0m - main:35 - Import error: attempted relative import beyond top-level package
+2025-10-26 04:22:29,993 - ptb.startup - INFO - _setup_logging:146 - ============================================================
+2025-10-26 04:22:29,999 - ptb.startup - INFO - _setup_logging:147 - Pokemon Team Builder v1.0 - Logging Initialized
+2025-10-26 04:22:30,000 - ptb.startup - INFO - _setup_logging:148 - Log directory: C:\Users\Colin\Desktop\Pokemon\PTB [PokeTeamBuilder v1.0]\logs
+2025-10-26 04:22:30,002 - ptb.startup - INFO - _setup_logging:149 - Session started: 2025-10-26 04:22:30
+2025-10-26 04:22:30,003 - ptb.startup - INFO - _setup_logging:150 - ============================================================
+2025-10-26 04:22:30,004 - ptb.system - INFO - log_system_info:162 - System Information:
+2025-10-26 04:22:30,113 - ptb.system - INFO - log_system_info:163 -   Platform: Windows-11-10.0.26100-SP0
+2025-10-26 04:22:30,115 - ptb.system - INFO - log_system_info:164 -   Python: 3.13.7 (tags/v3.13.7:bcee1c3, Aug 14 2025, 14:15:11) [MSC v.1944 64 bit (AMD64)]
+2025-10-26 04:22:30,117 - ptb.system - INFO - log_system_info:165 -   Architecture: ('64bit', 'WindowsPE')
+2025-10-26 04:22:30,118 - ptb.system - INFO - log_system_info:166 -   Processor: Intel64 Family 6 Model 165 Stepping 2, GenuineIntel
+2025-10-26 04:22:30,202 - ptb.system - INFO - log_system_info:171 -   Total Memory: 15GB
+2025-10-26 04:22:30,204 - ptb.system - INFO - log_system_info:172 -   Available Memory: 2GB
+2025-10-26 04:22:30,205 - ptb.launcher - INFO - main:30 - Starting Pokemon Team Builder v1.0...
+2025-10-26 04:22:30,206 - ptb.launcher - INFO - main:31 - Loading GUI components...
+2025-10-26 04:22:30,235 - src.utils.performance - INFO - optimize_startup:289 - Performing startup optimizations...
+2025-10-26 04:22:30,260 - src.utils.performance - INFO - optimize_startup:302 - Startup optimization completed

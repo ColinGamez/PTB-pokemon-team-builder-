@@ -161,72 +161,73 @@ class ThemeManager:
         """Apply a theme to a widget and its children."""
         theme = self.get_theme(theme_type)
         
-        if isinstance(widget, tk.Tk) or isinstance(widget, tk.Toplevel):
-            widget.configure(
-                bg=theme['bg'],
-                fg=theme['fg']
-            )
-        elif isinstance(widget, tk.Frame) or isinstance(widget, tk.LabelFrame):
-            widget.configure(
-                bg=theme['bg'],
-                fg=theme['fg'],
-                highlightbackground=theme['border'],
-                highlightcolor=theme['accent']
-            )
-        elif isinstance(widget, tk.Label):
-            widget.configure(
-                bg=theme['bg'],
-                fg=theme['fg']
-            )
-        elif isinstance(widget, tk.Button):
-            widget.configure(
-                bg=theme['accent'],
-                fg='white',
-                activebackground=theme['highlight'],
-                activeforeground='white',
-                relief='flat',
-                borderwidth=0,
-                padx=10,
-                pady=5
-            )
-        elif isinstance(widget, tk.Entry):
-            widget.configure(
-                bg=theme['secondary'],
-                fg=theme['fg'],
-                insertbackground=theme['fg'],
-                relief='flat',
-                borderwidth=1,
-                highlightthickness=1,
-                highlightbackground=theme['border'],
-                highlightcolor=theme['accent']
-            )
-        elif isinstance(widget, tk.Text):
-            widget.configure(
-                bg=theme['secondary'],
-                fg=theme['fg'],
-                insertbackground=theme['fg'],
-                relief='flat',
-                borderwidth=1,
-                highlightthickness=1,
-                highlightbackground=theme['border'],
-                highlightcolor=theme['accent']
-            )
-        elif isinstance(widget, ttk.Treeview):
-            style = ttk.Style()
-            style.theme_use('clam')
-            style.configure(
-                'Treeview',
-                background=theme['secondary'],
-                foreground=theme['fg'],
-                fieldbackground=theme['secondary'],
-                borderwidth=0
-            )
-            style.configure(
-                'Treeview.Heading',
-                background=theme['accent'],
-                foreground='white',
-                relief='flat'
-            )
+        try:
+            if isinstance(widget, tk.Tk) or isinstance(widget, tk.Toplevel):
+                # Tk root only supports bg, not fg
+                widget.configure(bg=theme['bg'])
+            elif isinstance(widget, tk.Frame) or isinstance(widget, tk.LabelFrame):
+                widget.configure(
+                    bg=theme['bg'],
+                    highlightbackground=theme['border'],
+                    highlightcolor=theme['accent']
+                )
+            elif isinstance(widget, tk.Label):
+                widget.configure(
+                    bg=theme['bg'],
+                    fg=theme['fg']
+                )
+            elif isinstance(widget, tk.Button):
+                widget.configure(
+                    bg=theme['accent'],
+                    fg='white',
+                    activebackground=theme['highlight'],
+                    activeforeground='white',
+                    relief='flat',
+                    borderwidth=0,
+                    padx=10,
+                    pady=5
+                )
+            elif isinstance(widget, tk.Entry):
+                widget.configure(
+                    bg=theme['secondary'],
+                    fg=theme['fg'],
+                    insertbackground=theme['fg'],
+                    relief='flat',
+                    borderwidth=1,
+                    highlightthickness=1,
+                    highlightbackground=theme['border'],
+                    highlightcolor=theme['accent']
+                )
+            elif isinstance(widget, tk.Text):
+                widget.configure(
+                    bg=theme['secondary'],
+                    fg=theme['fg'],
+                    insertbackground=theme['fg'],
+                    relief='flat',
+                    borderwidth=1,
+                    highlightthickness=1,
+                    highlightbackground=theme['border'],
+                    highlightcolor=theme['accent']
+                )
+            elif isinstance(widget, ttk.Treeview):
+                style = ttk.Style()
+                style.theme_use('clam')
+                style.configure(
+                    'Treeview',
+                    background=theme['secondary'],
+                    foreground=theme['fg'],
+                    fieldbackground=theme['secondary'],
+                    borderwidth=0
+                )
+                style.configure(
+                    'Treeview.Heading',
+                    background=theme['accent'],
+                    foreground='white',
+                    relief='flat'
+                )
+        except tk.TclError as e:
+            # Some widgets don't support all options - silently skip
+            pass
         
         # Apply theme to children
         for child in widget.winfo_children():
@@ -266,26 +267,67 @@ class ThemeManager:
         parent: tk.Widget,
         text: str,
         command=None,
-        theme_type: ThemeType = None
+        theme_type: ThemeType = None,
+        style: str = "primary",
+        width: int = None,
+        **kwargs
     ) -> tk.Button:
         """Create a styled button with the current theme."""
         theme = self.get_theme(theme_type)
+        
+        # Button style variants
+        if style == "primary":
+            bg_color = theme['accent']
+            fg_color = 'white'
+            active_bg = theme['highlight']
+        elif style == "success":
+            bg_color = theme['success']
+            fg_color = 'white'
+            active_bg = theme['success']
+        elif style == "warning":
+            bg_color = theme['warning']
+            fg_color = 'white'
+            active_bg = theme['warning']
+        elif style == "error":
+            bg_color = theme['error']
+            fg_color = 'white'
+            active_bg = theme['error']
+        elif style == "secondary":
+            bg_color = theme['secondary']
+            fg_color = theme['fg']
+            active_bg = theme['border']
+        else:
+            bg_color = theme['accent']
+            fg_color = 'white'
+            active_bg = theme['highlight']
         
         button = tk.Button(
             parent,
             text=text,
             command=command,
-            bg=theme['accent'],
-            fg='white',
-            activebackground=theme['highlight'],
-            activeforeground='white',
+            bg=bg_color,
+            fg=fg_color,
+            activebackground=active_bg,
+            activeforeground=fg_color,
             relief='flat',
             borderwidth=0,
             padx=15,
             pady=8,
             font=('Arial', 10, 'bold'),
-            cursor='hand2'
+            cursor='hand2',
+            width=width,
+            **kwargs
         )
+        
+        # Add hover effects
+        def on_enter(e):
+            button.config(bg=active_bg)
+        
+        def on_leave(e):
+            button.config(bg=bg_color)
+        
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
         
         return button
     

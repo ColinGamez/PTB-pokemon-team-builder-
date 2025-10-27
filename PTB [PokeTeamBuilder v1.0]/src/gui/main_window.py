@@ -11,11 +11,16 @@ import os
 # Add the src directory to the path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from gui.theme_manager import ThemeManager, ThemeType
-from gui.team_builder_gui import TeamBuilderFrame
-from gui.battle_simulator_gui import BattleSimulatorFrame
-from gui.team_analysis_gui import TeamAnalysisFrame
-from gui.team_optimization_gui import TeamOptimizationFrame
+from src.gui.theme_manager import ThemeManager, ThemeType
+from src.gui.team_builder_gui import TeamBuilderFrame
+from src.gui.battle_simulator_gui import BattleSimulatorFrame
+from src.gui.team_analysis_gui import TeamAnalysisFrame
+from src.gui.team_optimization_gui import TeamOptimizationFrame
+from src.gui.breeding_calculator_gui import BreedingCalculatorFrame
+from src.gui.tournament_system_gui import TournamentSystemFrame
+from src.gui.save_file_import_gui import SaveFileImportFrame
+from src.gui.social_community_gui import SocialCommunityFrame
+from src.gui.admin_panel_gui import AdminPanelFrame
 
 
 class MainWindow:
@@ -166,44 +171,170 @@ class MainWindow:
         )
         self.optimization_btn.pack(side=tk.LEFT, padx=5)
         
-        # Welcome message
-        welcome_frame = self.theme_manager.create_styled_frame(self.content_frame)
-        welcome_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        # Breeding Calculator button
+        self.breeding_btn = self.theme_manager.create_styled_button(
+            nav_frame,
+            text="🥚 Breeding Calculator",
+            command=self._show_breeding_calculator
+        )
+        self.breeding_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Tournament System button
+        self.tournament_btn = self.theme_manager.create_styled_button(
+            nav_frame,
+            text="🏆 Tournament System",
+            command=self._show_tournament_system
+        )
+        self.tournament_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Save File Import button
+        self.import_btn = self.theme_manager.create_styled_button(
+            nav_frame,
+            text="💾 Save File Import",
+            command=self._show_save_file_import
+        )
+        self.import_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Social Community button
+        self.social_btn = self.theme_manager.create_styled_button(
+            nav_frame,
+            text="🌟 Social Hub",
+            command=self._show_social_hub
+        )
+        self.social_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Admin Panel button
+        self.admin_btn = self.theme_manager.create_styled_button(
+            nav_frame,
+            text="🔒 Admin Panel",
+            command=self._show_admin_panel
+        )
+        self.admin_btn.pack(side=tk.LEFT, padx=5)
+        
+        # Welcome message with enhanced layout
+        self.welcome_frame = self.theme_manager.create_styled_frame(self.content_frame)
+        self.welcome_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        # Hero section
+        hero_frame = self.theme_manager.create_styled_frame(self.welcome_frame)
+        hero_frame.pack(fill=tk.X, pady=(0, 30))
         
         welcome_label = self.theme_manager.create_styled_label(
-            welcome_frame,
-            text="Welcome to Pokemon Team Builder!",
-            font=('Arial', 24, 'bold')
+            hero_frame,
+            text="🎮 Pokemon Team Builder",
+            font=('Arial', 28, 'bold')
         )
-        welcome_label.pack(pady=20)
+        welcome_label.pack(pady=(20, 10))
         
         subtitle_label = self.theme_manager.create_styled_label(
-            welcome_frame,
-            text="Build, analyze, and optimize your Pokemon teams for any era!",
-            font=('Arial', 14)
+            hero_frame,
+            text="Build, analyze, and optimize your Pokemon teams for competitive play!",
+            font=('Arial', 16)
         )
-        subtitle_label.pack(pady=10)
+        subtitle_label.pack(pady=(0, 10))
         
-        # Feature highlights
-        features_frame = self.theme_manager.create_styled_frame(welcome_frame)
-        features_frame.pack(fill=tk.X, padx=50, pady=20)
+        version_label = self.theme_manager.create_styled_label(
+            hero_frame,
+            text="Version 1.0 • Multi-Platform Support • Enhanced Features",
+            font=('Arial', 12, 'italic')
+        )
+        version_label.pack(pady=(0, 20))
+        
+        # Feature highlights with modern card layout
+        features_title = self.theme_manager.create_styled_label(
+            self.welcome_frame,
+            text="✨ Key Features",
+            font=('Arial', 18, 'bold')
+        )
+        features_title.pack(pady=(0, 15))
+        
+        # Create a grid of feature cards
+        cards_frame = self.theme_manager.create_styled_frame(self.welcome_frame)
+        cards_frame.pack(fill=tk.X, padx=20, pady=10)
         
         features = [
-            "🎮 Support for all Pokemon games from GameCube to Switch",
-            "🏗️ Comprehensive team building with Shadow Pokemon support",
-            "📊 Advanced team analysis and optimization",
-            "⚔️ Battle simulation with AI opponents",
-            "🎨 Multiple themes including GameCube nostalgia",
-            "💾 Save and load teams in multiple formats"
+            {"icon": "�️", "title": "Team Builder", "desc": "Comprehensive team building with all Pokemon generations"},
+            {"icon": "⚔️", "title": "Battle Simulator", "desc": "Advanced battle simulation with AI opponents"},
+            {"icon": "📊", "title": "Team Analysis", "desc": "In-depth analysis of type coverage and weaknesses"},
+            {"icon": "🔧", "title": "Optimization", "desc": "AI-powered team optimization and suggestions"},
+            {"icon": "🥚", "title": "Breeding Calculator", "desc": "Calculate breeding chains and inheritance"},
+            {"icon": "�", "title": "Tournament System", "desc": "Create and manage Pokemon tournaments"}
         ]
         
-        for feature in features:
-            feature_label = self.theme_manager.create_styled_label(
-                features_frame,
-                text=feature,
-                font=('Arial', 12)
+        # Create feature cards in 2 columns
+        for i, feature in enumerate(features):
+            row = i // 2
+            col = i % 2
+            
+            card_frame = self.theme_manager.create_styled_frame(cards_frame)
+            card_frame.grid(row=row, column=col, padx=10, pady=8, sticky="ew")
+            cards_frame.grid_columnconfigure(col, weight=1)
+            
+            # Icon
+            icon_label = self.theme_manager.create_styled_label(
+                card_frame,
+                text=feature["icon"],
+                font=('Arial', 20)
             )
-            feature_label.pack(anchor=tk.W, pady=2)
+            icon_label.pack(side=tk.LEFT, padx=(15, 10), pady=15)
+            
+            # Text content
+            text_frame = tk.Frame(card_frame)
+            text_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=10)
+            
+            title_label = self.theme_manager.create_styled_label(
+                text_frame,
+                text=feature["title"],
+                font=('Arial', 14, 'bold')
+            )
+            title_label.pack(anchor=tk.W)
+            
+            desc_label = self.theme_manager.create_styled_label(
+                text_frame,
+                text=feature["desc"],
+                font=('Arial', 11),
+                wraplength=250
+            )
+            desc_label.pack(anchor=tk.W, pady=(2, 0))
+        
+        # Quick start section
+        quick_start_frame = self.theme_manager.create_styled_frame(self.welcome_frame)
+        quick_start_frame.pack(fill=tk.X, pady=(30, 10))
+        
+        quick_title = self.theme_manager.create_styled_label(
+            quick_start_frame,
+            text="🚀 Quick Start",
+            font=('Arial', 16, 'bold')
+        )
+        quick_title.pack(pady=(0, 10))
+        
+        # Quick action buttons
+        quick_buttons_frame = tk.Frame(quick_start_frame)
+        quick_buttons_frame.pack()
+        
+        self.quick_team_btn = self.theme_manager.create_styled_button(
+            quick_buttons_frame,
+            text="🏗️ Start Building",
+            command=self._show_team_builder,
+            width=15
+        )
+        self.quick_team_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.quick_battle_btn = self.theme_manager.create_styled_button(
+            quick_buttons_frame,
+            text="⚔️ Quick Battle",
+            command=self._show_battle_simulator,
+            width=15
+        )
+        self.quick_battle_btn.pack(side=tk.LEFT, padx=5)
+        
+        self.quick_analyze_btn = self.theme_manager.create_styled_button(
+            quick_buttons_frame,
+            text="📊 Analyze Team",
+            command=self._show_team_analysis,
+            width=15
+        )
+        self.quick_analyze_btn.pack(side=tk.LEFT, padx=5)
         
         # Status bar
         self.status_bar = self.theme_manager.create_styled_label(
@@ -242,8 +373,49 @@ class MainWindow:
         self.current_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         self._update_status("Team Optimization loaded")
     
+    def _show_breeding_calculator(self):
+        """Show the breeding calculator interface."""
+        self._clear_content()
+        self.current_frame = BreedingCalculatorFrame(self.content_frame, self.theme_manager)
+        self.current_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self._update_status("Breeding Calculator loaded")
+    
+    def _show_tournament_system(self):
+        """Show the tournament system interface."""
+        self._clear_content()
+        self.current_frame = TournamentSystemFrame(self.content_frame, self.theme_manager)
+        self.current_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self._update_status("Tournament System loaded")
+    
+    def _show_save_file_import(self):
+        """Show the save file import interface."""
+        self._clear_content()
+        self.current_frame = SaveFileImportFrame(self.content_frame, self.theme_manager)
+        self.current_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self._update_status("Save File Import loaded")
+    
+    def _show_social_hub(self):
+        """Show the social community hub interface."""
+        self._clear_content()
+        self.current_frame = SocialCommunityFrame(self.content_frame, self.theme_manager)
+        self.current_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self._update_status("Social Community Hub loaded")
+    
+    def _show_admin_panel(self):
+        """Show the admin panel interface."""
+        self._clear_content()
+        self.current_frame = AdminPanelFrame(self.content_frame, self.theme_manager)
+        self.current_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self._update_status("Admin Panel loaded")
+    
     def _clear_content(self):
         """Clear the current content frame."""
+        # Destroy welcome frame if it exists
+        if hasattr(self, 'welcome_frame') and self.welcome_frame and self.welcome_frame.winfo_exists():
+            self.welcome_frame.destroy()
+            self.welcome_frame = None
+        
+        # Destroy current frame if it exists
         if self.current_frame:
             self.current_frame.destroy()
             self.current_frame = None

@@ -9,13 +9,15 @@ import os
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 try:
-    from rich.logging import RichHandler
-    from rich.console import Console
+    from rich.logging import RichHandler as RichLoggingHandler
+    from rich.console import Console as RichConsole
     RICH_AVAILABLE = True
 except ImportError:
+    RichLoggingHandler = None  # type: ignore
+    RichConsole = None  # type: ignore
     RICH_AVAILABLE = False
 
 try:
@@ -67,9 +69,9 @@ class PTBLogger:
         root_logger.setLevel(logging.DEBUG)
         
         # Console handler with rich formatting if available
-        if RICH_AVAILABLE:
-            console_handler = RichHandler(
-                console=Console(stderr=True),
+        if RICH_AVAILABLE and RichLoggingHandler is not None and RichConsole is not None:
+            console_handler = RichLoggingHandler(
+                console=RichConsole(stderr=True),
                 show_time=True,
                 show_path=False,
                 rich_tracebacks=True
@@ -182,7 +184,7 @@ class PTBLogger:
         action_logger = logging.getLogger('ptb.actions')
         action_logger.info(f"USER_ACTION: user={user_id} action={action} details={details}")
     
-    def log_error_with_context(self, error: Exception, context: dict = None):
+    def log_error_with_context(self, error: Exception, context: Optional[dict] = None):
         """Log error with additional context."""
         error_logger = logging.getLogger('ptb.errors')
         error_logger.error(f"Error: {type(error).__name__}: {error}")
@@ -231,6 +233,9 @@ class LoggingContext:
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.start_time is None:
+            return False
+            
         duration = (datetime.now() - self.start_time).total_seconds()
         
         if exc_type is None:

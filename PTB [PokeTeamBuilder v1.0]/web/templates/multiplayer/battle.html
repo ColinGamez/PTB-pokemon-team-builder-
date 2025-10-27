@@ -1,0 +1,903 @@
+{% extends "base.html" %}
+
+{% block title %}Battle Room - {{ battle_id[:8] }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+<style>
+.battle-field {
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    border-radius: 15px;
+    padding: 30px;
+    color: white;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.battle-field::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
+}
+
+.pokemon-sprite {
+    width: 100px;
+    height: 100px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    border: 3px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.pokemon-sprite:hover {
+    transform: scale(1.1);
+    border-color: rgba(255,255,255,0.6);
+}
+
+.pokemon-info {
+    position: relative;
+    z-index: 1;
+}
+
+.hp-bar {
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.3);
+    overflow: hidden;
+}
+
+.hp-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.hp-high { background: #28a745; }
+.hp-medium { background: #ffc107; }
+.hp-low { background: #dc3545; }
+
+.move-button {
+    margin: 8px;
+    min-width: 140px;
+    min-height: 80px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.move-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.move-button.selected {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    border-color: #ffd700;
+    color: #333;
+    box-shadow: 0 0 15px rgba(255,215,0,0.5);
+}
+
+.move-type {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.battle-log {
+    height: 350px;
+    overflow-y: auto;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+    background: #f8f9fa;
+    font-family: 'Courier New', monospace;
+}
+
+.log-entry {
+    padding: 5px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-timestamp {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.chat-area {
+    height: 250px;
+    overflow-y: auto;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px;
+    background: #ffffff;
+}
+
+.chat-message {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 18px;
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.chat-message.own {
+    background: #007bff;
+    color: white;
+    margin-left: auto;
+    text-align: right;
+}
+
+.chat-message.other {
+    background: #e9ecef;
+    color: #333;
+}
+
+.timer-display {
+    font-size: 28px;
+    font-weight: bold;
+    color: #dc3545;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.timer-display.warning {
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.phase-display {
+    font-size: 20px;
+    font-weight: bold;
+    color: #198754;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.player-card {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.player-card.ready {
+    border-color: #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.player-card.waiting {
+    border-color: #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.status-ready { background: #28a745; }
+.status-waiting { background: #ffc107; }
+.status-disconnected { background: #dc3545; }
+
+.battle-vs {
+    font-size: 48px;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    animation: glow 2s infinite;
+}
+
+@keyframes glow {
+    0%, 100% { text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    50% { text-shadow: 2px 2px 20px rgba(255,255,255,0.8); }
+}
+
+.action-panel {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    border: 2px solid #dee2e6;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.spectator-badge {
+    background: linear-gradient(45deg, #6f42c1, #e83e8c);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.connection-status {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    padding: 10px 15px;
+    border-radius: 25px;
+    color: white;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.connection-status.connected {
+    background: #28a745;
+}
+
+.connection-status.disconnected {
+    background: #dc3545;
+}
+
+.battle-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="connection-status connected" id="connectionStatus">
+    <i class="fas fa-wifi"></i> Connected
+</div>
+
+<div class="container-fluid">
+    <!-- Battle Header -->
+    <div class="battle-header">
+        <h2><i class="fas fa-swords"></i> Battle Room</h2>
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <span class="phase-display" id="phaseDisplay">{{ battle_state.phase.replace('_', ' ').title() }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>Turn:</strong> <span id="turnDisplay">{{ battle_state.turn_number }}</span>
+            </div>
+            <div class="col-md-3">
+                <strong>Timer:</strong> <span class="timer-display" id="timerDisplay">--</span>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-light btn-sm" onclick="location.href='/multiplayer'">
+                    <i class="fas fa-arrow-left"></i> Back to Lobby
+                </button>
+            </div>
+        </div>
+        <small class="d-block mt-2 opacity-75">Battle ID: {{ battle_id }}</small>
+    </div>
+
+    <div class="row">
+        <!-- Main Battle Area -->
+        <div class="col-lg-8">
+            <!-- Battle Field -->
+            <div class="card mb-4">
+                <div class="card-body p-0">
+                    <div class="battle-field">
+                        <div class="row align-items-center h-100">
+                            <!-- Player Pokemon -->
+                            <div class="col-md-4">
+                                <div class="pokemon-info text-center">
+                                    <div class="pokemon-sprite">
+                                        <i class="fas fa-dragon"></i>
+                                    </div>
+                                    <h5 class="mt-3 mb-2" id="playerPokemon">Your Pokemon</h5>
+                                    <div class="hp-bar">
+                                        <div class="hp-fill hp-high" style="width: 100%" id="playerHP"></div>
+                                    </div>
+                                    <small class="d-block mt-1">100/100 HP</small>
+                                </div>
+                            </div>
+                            
+                            <!-- VS Section -->
+                            <div class="col-md-4 text-center">
+                                <div class="battle-vs">VS</div>
+                                <div id="battleStatus" class="mt-3">
+                                    <div class="badge bg-light text-dark p-2">Battle in Progress</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Opponent Pokemon -->
+                            <div class="col-md-4">
+                                <div class="pokemon-info text-center">
+                                    <div class="pokemon-sprite">
+                                        <i class="fas fa-fire"></i>
+                                    </div>
+                                    <h5 class="mt-3 mb-2" id="opponentPokemon">Opponent Pokemon</h5>
+                                    <div class="hp-bar">
+                                        <div class="hp-fill hp-high" style="width: 100%" id="opponentHP"></div>
+                                    </div>
+                                    <small class="d-block mt-1">100/100 HP</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Panel -->
+            <div class="action-panel" id="actionPanel">
+                {% if user.user_id in battle_state.players %}
+                <!-- Move Selection for Players -->
+                <div id="moveSelection">
+                    <h5 class="mb-3"><i class="fas fa-fist-raised"></i> Select Your Move</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-primary move-button w-100" data-move="tackle">
+                                <div class="fw-bold">Tackle</div>
+                                <div class="move-type">Normal • Physical</div>
+                                <small>40 BP • 100% Accuracy</small>
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-danger move-button w-100" data-move="ember">
+                                <div class="fw-bold">Ember</div>
+                                <div class="move-type">Fire • Special</div>
+                                <small>40 BP • 100% Accuracy</small>
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-secondary move-button w-100" data-move="growl">
+                                <div class="fw-bold">Growl</div>
+                                <div class="move-type">Normal • Status</div>
+                                <small>-- BP • 100% Accuracy</small>
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <button class="btn btn-warning move-button w-100" data-move="scratch">
+                                <div class="fw-bold">Scratch</div>
+                                <div class="move-type">Normal • Physical</div>
+                                <small>40 BP • 100% Accuracy</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-success btn-lg px-5" id="submitMovesBtn" disabled>
+                            <i class="fas fa-check"></i> Submit Move
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Spectator View -->
+                <div class="text-center">
+                    <div class="spectator-badge">
+                        <i class="fas fa-eye"></i> Spectating
+                    </div>
+                    <p class="text-muted">You are watching this battle. Enjoy the show!</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="col-lg-4">
+            <!-- Players Panel -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users"></i> Players</h5>
+                </div>
+                <div class="card-body" id="playersInfo">
+                    {% for player_id, player in battle_state.players.items() %}
+                    <div class="player-card {% if player.ready %}ready{% else %}waiting{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold">{{ player.username }}</div>
+                                <small class="text-muted">{{ player.status.replace('_', ' ').title() }}</small>
+                            </div>
+                            <div>
+                                <span class="status-indicator {% if player.ready %}status-ready{% else %}status-waiting{% endif %}"></span>
+                                {% if player.ready %}
+                                <span class="badge bg-success">Ready</span>
+                                {% else %}
+                                <span class="badge bg-warning">Waiting</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Battle Log Panel -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-scroll"></i> Battle Log</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="battle-log" id="battleLog">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[{{ battle_state.get('started_at', 'now') }}]</span>
+                            <div>Battle starting...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="clearBattleLog()">
+                        <i class="fas fa-trash"></i> Clear Log
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Panel -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-comments"></i> Chat</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="chat-area" id="chatArea">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-comments"></i>
+                            <p class="mb-0">Chat is active</p>
+                            <small>Be respectful to other trainers!</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="chatInput" 
+                               placeholder="Type a message..." maxlength="200">
+                        <button class="btn btn-primary" id="sendChatBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Press Enter to send</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Battle End Modal -->
+<div class="modal fade" id="battleEndModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Battle Complete!</h5>
+            </div>
+            <div class="modal-body text-center">
+                <div id="battleResultContent">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="location.href='/multiplayer'">
+                    Back to Lobby
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Stay and Chat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const socket = io();
+const battleId = '{{ battle_id }}';
+{% set user_is_player = user.user_id in battle_state.players %}
+const isPlayer = {{ user_is_player|lower }};
+let selectedMove = null;
+let timerInterval = null;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+
+// Join battle room
+socket.emit('join_battle', {battle_id: battleId});
+
+// Socket event handlers
+socket.on('connect', function() {
+    console.log('Connected to battle server');
+    updateConnectionStatus(true);
+    reconnectAttempts = 0;
+});
+
+socket.on('disconnect', function() {
+    console.log('Disconnected from server');
+    updateConnectionStatus(false);
+    attemptReconnect();
+});
+
+socket.on('battle_message', function(data) {
+    console.log('Battle message received:', data);
+    addToBattleLog(data);
+    updateBattleState(data);
+});
+
+socket.on('chat_message', function(data) {
+    addToChatArea(data.username, data.message, data.username === '{{ user.username }}');
+});
+
+// Move selection (only for players)
+if (isPlayer) {
+    document.querySelectorAll('.move-button').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            selectedMove = this.dataset.move;
+            
+            // Update button states
+            document.querySelectorAll('.move-button').forEach(b => b.classList.remove('selected'));
+            this.classList.add('selected');
+            
+            // Enable submit button
+            document.getElementById('submitMovesBtn').disabled = false;
+            
+            // Add visual feedback
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 150);
+        });
+    });
+
+    // Submit moves
+    document.getElementById('submitMovesBtn').addEventListener('click', function() {
+        if (selectedMove && !this.disabled) {
+            this.disabled = true;
+            
+            fetch('/api/multiplayer/submit_moves', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    battle_id: battleId,
+                    moves: [selectedMove]
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Disable all move buttons
+                    document.querySelectorAll('.move-button').forEach(b => b.disabled = true);
+                    addToBattleLog({
+                        type: 'info', 
+                        data: {message: 'Move submitted. Waiting for opponent...'}
+                    });
+                } else {
+                    this.disabled = false;
+                    showError('Failed to submit move: ' + data.error);
+                }
+            })
+            .catch(error => {
+                this.disabled = false;
+                showError('Network error. Please try again.');
+            });
+        }
+    });
+}
+
+// Chat functionality
+document.getElementById('sendChatBtn').addEventListener('click', sendChat);
+document.getElementById('chatInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendChat();
+    }
+});
+
+function sendChat() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    if (message && message.length <= 200) {
+        socket.emit('chat_message', {
+            battle_id: battleId,
+            message: message
+        });
+        input.value = '';
+    }
+}
+
+function addToBattleLog(data) {
+    const log = document.getElementById('battleLog');
+    const timestamp = new Date().toLocaleTimeString();
+    
+    let message = '';
+    let className = 'log-entry';
+    
+    switch(data.type) {
+        case 'turn_start':
+            message = `Turn ${data.data.turn_number} started`;
+            className += ' text-primary';
+            break;
+        case 'moves_submitted':
+            message = `Player ready`;
+            className += ' text-info';
+            break;
+        case 'turn_executed':
+            message = `Turn ${data.data.turn_number} executed`;
+            className += ' text-success';
+            break;
+        case 'battle_ended':
+            message = `Battle ended! Winner: ${data.data.winner_name}`;
+            className += ' text-warning fw-bold';
+            showBattleEndModal(data.data);
+            break;
+        case 'player_joined':
+            message = `${data.data.username} joined the battle`;
+            className += ' text-success';
+            break;
+        case 'player_left':
+            message = `${data.data.username} left the battle`;
+            className += ' text-danger';
+            break;
+        case 'info':
+            message = data.data.message;
+            className += ' text-muted';
+            break;
+        default:
+            message = data.type.replace('_', ' ');
+    }
+    
+    const div = document.createElement('div');
+    div.className = className;
+    div.innerHTML = `
+        <span class="log-timestamp">[${timestamp}]</span>
+        <div>${message}</div>
+    `;
+    
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+    
+    // Limit log entries to prevent memory issues
+    if (log.children.length > 100) {
+        log.removeChild(log.firstChild);
+    }
+}
+
+function addToChatArea(username, message, isOwn = false) {
+    const chat = document.getElementById('chatArea');
+    const timestamp = new Date().toLocaleTimeString();
+    
+    const div = document.createElement('div');
+    div.className = `chat-message ${isOwn ? 'own' : 'other'}`;
+    
+    if (isOwn) {
+        div.innerHTML = `
+            <div>${message}</div>
+            <small class="opacity-75">${timestamp}</small>
+        `;
+    } else {
+        div.innerHTML = `
+            <div><strong>${username}:</strong> ${message}</div>
+            <small class="opacity-75">${timestamp}</small>
+        `;
+    }
+    
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    
+    // Limit chat messages
+    if (chat.children.length > 50) {
+        chat.removeChild(chat.firstChild);
+    }
+}
+
+function updateBattleState(data) {
+    switch(data.type) {
+        case 'turn_start':
+            document.getElementById('turnDisplay').textContent = data.data.turn_number;
+            document.getElementById('phaseDisplay').textContent = 'Move Selection';
+            
+            if (isPlayer) {
+                // Reset move selection
+                document.querySelectorAll('.move-button').forEach(b => {
+                    b.disabled = false;
+                    b.classList.remove('selected');
+                });
+                selectedMove = null;
+                document.getElementById('submitMovesBtn').disabled = true;
+            }
+            
+            // Start timer
+            if (data.data.time_limit) {
+                startTimer(data.data.time_limit);
+            }
+            break;
+            
+        case 'moves_submitted':
+            // Update player status in UI
+            updatePlayerStatus(data.data.player_id, true);
+            break;
+            
+        case 'turn_executed':
+            document.getElementById('phaseDisplay').textContent = 'Executing Moves';
+            stopTimer();
+            break;
+            
+        case 'battle_ended':
+            document.getElementById('phaseDisplay').textContent = 'Battle Complete';
+            stopTimer();
+            if (isPlayer) {
+                document.querySelectorAll('.move-button').forEach(b => b.disabled = true);
+                document.getElementById('submitMovesBtn').disabled = true;
+            }
+            break;
+    }
+}
+
+function updatePlayerStatus(playerId, ready) {
+    // This would update the player status in the UI
+    // Implementation depends on how player data is structured
+    console.log(`Player ${playerId} ready: ${ready}`);
+}
+
+function startTimer(seconds) {
+    stopTimer();
+    
+    let remaining = seconds;
+    const timerDisplay = document.getElementById('timerDisplay');
+    
+    const updateTimer = () => {
+        timerDisplay.textContent = remaining + 's';
+        
+        if (remaining <= 10) {
+            timerDisplay.classList.add('warning');
+        } else {
+            timerDisplay.classList.remove('warning');
+        }
+        
+        remaining--;
+        
+        if (remaining < 0) {
+            stopTimer();
+            timerDisplay.textContent = '--';
+        }
+    };
+    
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+function stopTimer() {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+    document.getElementById('timerDisplay').classList.remove('warning');
+}
+
+function showBattleEndModal(resultData) {
+    const content = document.getElementById('battleResultContent');
+    const isWinner = resultData.winner_name === '{{ user.username }}';
+    
+    content.innerHTML = `
+        <div class="mb-4">
+            <i class="fas fa-${isWinner ? 'trophy' : 'handshake'}" 
+               style="font-size: 64px; color: ${isWinner ? '#ffd700' : '#6c757d'};"></i>
+        </div>
+        <h3 class="mb-3">${isWinner ? 'Victory!' : 'Good Battle!'}</h3>
+        <p class="lead">${resultData.winner_name} wins the battle!</p>
+        <div class="row text-center mt-4">
+            <div class="col-6">
+                <div class="bg-light p-3 rounded">
+                    <h5>Battle Duration</h5>
+                    <span class="text-muted">${Math.floor(resultData.battle_duration / 60)}:${String(Math.floor(resultData.battle_duration % 60)).padStart(2, '0')}</span>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="bg-light p-3 rounded">
+                    <h5>Total Turns</h5>
+                    <span class="text-muted">${resultData.final_state?.turn_number || 'N/A'}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('battleEndModal')).show();
+}
+
+function updateConnectionStatus(connected) {
+    const status = document.getElementById('connectionStatus');
+    if (connected) {
+        status.className = 'connection-status connected';
+        status.innerHTML = '<i class="fas fa-wifi"></i> Connected';
+    } else {
+        status.className = 'connection-status disconnected';
+        status.innerHTML = '<i class="fas fa-wifi"></i> Disconnected';
+    }
+}
+
+function attemptReconnect() {
+    if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        console.log(`Attempting to reconnect... (${reconnectAttempts}/${maxReconnectAttempts})`);
+        
+        setTimeout(() => {
+            socket.connect();
+        }, 2000 * reconnectAttempts); // Exponential backoff
+    } else {
+        console.log('Max reconnection attempts reached');
+        addToBattleLog({
+            type: 'error',
+            data: {message: 'Connection lost. Please refresh the page.'}
+        });
+    }
+}
+
+function clearBattleLog() {
+    document.getElementById('battleLog').innerHTML = '';
+}
+
+function showError(message) {
+    // Simple error display - could be enhanced with toast notifications
+    addToBattleLog({
+        type: 'error',
+        data: {message: 'Error: ' + message}
+    });
+}
+
+// Periodic state updates
+const stateUpdateInterval = setInterval(() => {
+    fetch(`/api/multiplayer/battle/${battleId}`)
+    .then(response => response.json())
+    .then(state => {
+        if (state.error) {
+            console.error('Battle not found or error:', state.error);
+            clearInterval(stateUpdateInterval);
+            return;
+        }
+        
+        // Update display elements
+        if (state.phase) {
+            document.getElementById('phaseDisplay').textContent = 
+                state.phase.replace('_', ' ').split(' ').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+        if (state.turn_number) {
+            document.getElementById('turnDisplay').textContent = state.turn_number;
+        }
+        
+        // Update timer if available
+        if (state.timer && state.timer.enabled && state.timer.remaining > 0) {
+            if (!timerInterval) {
+                startTimer(Math.floor(state.timer.remaining));
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Failed to fetch battle state:', error);
+    });
+}, 5000);
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    clearInterval(stateUpdateInterval);
+    stopTimer();
+    socket.disconnect();
+});
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof bootstrap !== 'undefined') {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+</script>
+{% endblock %}

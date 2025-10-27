@@ -11,11 +11,11 @@ import os
 # Add the src directory to the path for imports
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from gui.theme_manager import ThemeManager
-from teambuilder.team import PokemonTeam, TeamFormat, TeamEra
-from battle.simulator import BattleSimulator
-from core.pokemon import Pokemon, ShadowPokemon
-from core.stats import PokemonNature
+from src.gui.theme_manager import ThemeManager
+from src.teambuilder.team import PokemonTeam, TeamFormat, TeamEra
+from src.battle.simulator import BattleSimulator
+from src.core.pokemon import Pokemon, ShadowPokemon, PokemonNature
+from src.utils.sprite_manager import get_sprite_manager
 
 
 class BattleSimulatorFrame(tk.Frame):
@@ -29,6 +29,7 @@ class BattleSimulatorFrame(tk.Frame):
         self.battle_simulator = BattleSimulator()
         self.battle_result = None
         self.ai_manager = None
+        self.sprite_manager = get_sprite_manager()
         
         self._initialize_ai_system()
         self._create_widgets()

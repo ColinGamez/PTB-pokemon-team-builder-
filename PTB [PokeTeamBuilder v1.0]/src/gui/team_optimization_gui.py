@@ -322,6 +322,13 @@ Moves:
     
     def _perform_optimization(self):
         """Perform the actual optimization analysis."""
+        if not self.current_team:
+            return {
+                'suggestions': ['No team loaded'],
+                'pokemon_changes': {},
+                'composition_changes': []
+            }
+            
         active_pokemon = self.current_team.get_active_pokemon()
         
         optimization_results = {
@@ -513,7 +520,8 @@ Moves:
                 "Optimization suggestions have been noted. In a full implementation, "
                 "this would automatically apply the changes to your team."
             )
-            logger.info(f"Optimizations applied to team {self.current_team.name}")
+            team_name = self.current_team.name if self.current_team else "Unknown"
+            logger.info(f"Optimizations applied to team {team_name}")
     
     def _reset_optimizations(self):
         """Reset all optimization results."""
